@@ -16,6 +16,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Twitter OAuth認証開始</title>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
   </head>
   <body>
       <% if (token==null || stoken==null){ %>
@@ -51,6 +52,63 @@
           <p><input type="submit" value="送信する"></p>
       </form>
           あなたのぼっち度: <%=model.getBotti()%><br>
+      <script>
+         var dataset = [
+          {graphLegend:"", graphValue:63, graphColor:"darkblue"},
+          {graphLegend:"", graphValue:37, graphColor:"transparent"}
+         ];
+
+        var width = 960,
+          height = 500,
+          radius = Math.min(width, height) / 2;
+
+        var arc = d3.svg.arc()
+          .outerRadius(radius - 10)
+          .innerRadius(0);
+
+        var pie = d3.layout.pie()
+          .sort(null)
+          .value(function(d) { return d.graphValue; });
+
+        var tooltip = d3.select("body")
+          .append("div")
+          .style("position", "absolute")
+          .style("z-index", "20")
+          .style("visibility", "hidden");
+
+        var svg = d3.select("body").append("svg")
+          .attr("width", width)
+          .attr("height", height)
+          .append("g")
+          .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+
+        var g = svg.selectAll(".arc")
+          .data(pie(dataset))
+          .enter().append("g")
+
+        g.append("path")
+          .attr("d", arc)
+          .style("fill", function(d) { return d.data.graphColor; })
+          // アニメーション効果
+          .transition()
+          .duration(1000) // 1秒間でアニメーションさせる
+          .attrTween("d", function(d){
+            var interpolate = d3.interpolate(
+              { startAngle : 0, endAngle : 0 },
+              { startAngle : d.startAngle, endAngle : d.endAngle }
+            );
+            return function(t){
+              return arc(interpolate(t));
+          }
+        });
+      
+        g.append("text")
+          .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+          .attr("dy", ".35em")
+          .style("text-anchor", "middle")
+          .text(function(d) { return d.data.graphLegend; });
+      </script>
       <% for(int i=0;i<24;i++){ %>
       <%=i+1%>時：
       <svg viewBox="0 0 300 8">
